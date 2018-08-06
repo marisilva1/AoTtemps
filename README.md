@@ -6,8 +6,8 @@ So far I have not used wget to obtain the dataset, and currently have the portio
 Steps to manipulate data:
 1. Slice date range
 2. Remove outliers (outlierScript)
-3. Split into separate folders based on node
-  **Check to see if all nodes span this time frame?**
+3. Split into separate folders based on node 
+**Check to see if all nodes span this time frame?**
 4. Do analysis
 
 ... still only working on removing outliers but I'm close
