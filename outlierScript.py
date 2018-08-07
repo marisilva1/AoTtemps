@@ -1,4 +1,4 @@
-#outlierScripy.py
+#outlierScript.py
 #this script should simply take out rows of data that do not contain values within a reasonable range.
 #should create a new .csv file with all the same keys but with some rows of values removed.
 #so I "finished" the script on 7/27/18, but it isn't working yet so it's not finished I'm lying
@@ -17,7 +17,6 @@ import os
 import re
 
 def setup():
-    #might not need all of these but declaring them won't hurt I don't think...
     global inputFile
     global outputFile
     global dirPath
@@ -67,9 +66,14 @@ def createData():
     global lines
     global hrfTitle
     global count
+    global parameter
+    global value
+    global temp
+    global keys
     
     valStr = ' '
     count = 0
+    temp = []
     
     with open(inputFile, "r") as file:
         #create a csv reader object (it is an Ordered Dictionary of all the rows from the .csv file)
@@ -86,47 +90,12 @@ def createData():
                 hrfTitle = "value_hrf_moving_average"
 
         if (hrfTitle != "value_hrf" and hrfTitle != "value_hrf_moving_average"):
-                    print("Error: Could not find appropriate value header. CSV file headers must include either 'value_hrf' or 'value_hrf_moving_average'.")
-                    exit(1)
+            print("Error: Could not find appropriate value header. CSV file headers must include either 'value_hrf' or 'value_hrf_moving_average'.")
+            exit(1)
 
         #go through each line of the input .csv file
-        #does 'fieldNames' mean I can put in any name - so like 'pressure' and it will recognize that in a row?
         for row in reader:
-            parameter = row["parameter"]
-            value = row["value_hrf"]
-            count = 0
-
-            #keep temps between -20 and 50 celsius
-            if parameter == "temperature":
-                if value < -20 | value > 50:
-                    del row
-                    count = count+1
-
-            #no humidity below 10 or above 100, in g/m^3
-            elif parameter == "humidity":
-                if value < 10 | value > 100:
-                    del row
-                    count = count+1
-
-            #no pressure below 100 or above 1100 in millibars
-            elif parameter == "pressure":
-                if value < 100 | value > 1100:
-                    del row
-                    count = count+1
-
-            else:
-                print("Error: apparently you have a strange parameter that is not temperature, pressure, or humidity...")
-
-# MAKE TEMPORARY DIRECTORY
-            #create the temporary dictionary (uses each sensor's value_hrf (or value_hrf_moving_average) as part of the value for each of the keys in outputDict) to hold
-            #the sum, count, min, and max of the sensor hrf values over the specified time period
-            if ',' in row[hrfTitle]:
-                newVal = '"'+ row[hrfTitle] +'"' #corrects error if commas are included in a sensor value
-            else:
-                newVal = row[hrfTitle]
-
-            temp = {'value_hrf':newVal}
-
+            
             #delete the value_raw, value_hrf_sum, and value_hrf_count columns if they exist
             try:
                 del row['value_raw']
@@ -140,32 +109,43 @@ def createData():
                 del row['value_hrf_count']
             except:
                 pass
+            
+            #iterate through the dictionary to generate a progressively growing temp list of dicts for each row
+            parameter = row["parameter"]
+            value = float(row["value_hrf"])
 
-            #iterate through the dictionary to generate the outputDict for each time period
+            #keep temps between -20 and 50 celsius
+            if parameter == "temperature":
+                if value < -20 | value > 50:
+                    del row
+                    count = count+1
+                else:
+                    temp.append(row.copy())
 
-            #if the key already exists (meaning the row has already been made and now the current value_hrf (or value_hrf_moving_average) just needs to be added to the sum and the count value needs to be incremented)
-            #then try to set the value of the dictionary key (key is in the format: timestamp,node_id,subsystem,sensor,parameter) - skips any values that are 'NA' or are a mix of letters and numbers
-            #dictionary value is another dictionary in the format: {'sum':sum,'count':count,'min':min,'max':max}
-            #else just update the outputDict with the temporary dictionary created above that contains the first value_hrf(or value_hrf_moving_average) for the current key
-            if valStr in outputDict:
-                try:
-                    #calculate min and max
-                    currMax = max(float(newVal),float(outputDict[valStr]['max']))
-                    currMin = min(float(newVal),float(outputDict[valStr]['min']))
+            #no humidity below 10 or above 100, in g/m^3
+            elif parameter == "humidity":
+                if value < 10 | value > 100:
+                    del row
+                    count = count+1
+                else:
+                    temp.append(row.copy())
 
-                    outputDict[str(valStr)] = {'sum':str(float(outputDict[valStr]['sum'])+float(temp['sum'])),'count':outputDict[str(valStr)]['count']+1,'min':currMin,'max':currMax}
+            #no pressure below 100 or above 1100 in millibars
+            elif parameter == "pressure":
+                if value < 100 | value > 1100:
+                    del row
+                    count = count+1
+                else:
+                    temp.append(row.copy())
 
-                    #if there are more than *beginMinMaxCalcs* values in the averaging period, add min and max to output file
-                    if float(outputDict[str(valStr)]['count']) > beginMinMaxCalcs:
-                        minmax = True
-                except ValueError:
-                    pass
             else:
-                outputDict[str(valStr)] = temp
-
-        valStr = ''
-
+                print("Error: apparently you have a strange parameter that is not temperature, pressure, or humidity...")
+        
         print("%d rows with outlying values removed." % count)
+
+    # update outputDict with the total contents of temp, and obtain an object just for the dictinary's keys
+    outputDict = temp
+    keys=outputDict[0].keys()
         
 def writeFile():
 
@@ -175,6 +155,7 @@ def writeFile():
     global dirPath
     global hrfTitle
     global fileName
+    global keys
 
     #create the sub directory that will contain the reduced data and the copied metadata files
     if not os.path.exists(os.path.dirname(fileName)):
@@ -187,8 +168,6 @@ def writeFile():
     #erase whatever is currently in output csv file
     open(outputFile,'w').close()
 
-    #update the output csv file's first line with the field names (removing 'value_hrf' (or 'value_hrf_moving_average') and 'value_raw') in the following format:
-    #timestamp,node_id,subsystem,sensor,parameter,value_raw,value_hrf
     with open (outputFile,'w') as f:
 
         #remove un used field names
@@ -209,10 +188,10 @@ def writeFile():
             f.write(str(fieldNames[i])+',')
 
     with open (outputFile,'a') as f:
-        #include the new values in the dictionary of outputDict only. No need for new calculations, just translate what was saved into the temp to outputDict I hope
-        for key,val in outputDict.items():
-            #write the whole row with the outputDict key (timestamp,node_id,subsystem,sensor,parameter) and the outputDict values (value_raw and value_hrf)
-            f.write('\n'+str(val)+'\n')
+        #get outputDict from a list format back into a .csv
+        dict_writer = csv.DictWriter(f, keys)
+        dict_writer.writeheader()
+        dict_writer.writerows(outputDict)
             
 def copyDigestFiles():
 
@@ -253,6 +232,7 @@ def copyDigestFiles():
             raise RuntimeError("command '{}' return with error (code {}): {}".format(e.cmd, e.returncode, e.output))
 
 if __name__ == "__main__":
+    
     #variable instantiations
     global inputFile
     global outputFile
