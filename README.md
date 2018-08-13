@@ -11,3 +11,29 @@ Steps to manipulate data:
 4. Add lats/lons to each of the data from the node metadata file?
 5. Use the dataReduction.py tool to average the separate nodes over 15-minute intervals
 6. Do analysis - reorganize the data into separate columns for temperature, pressure, and humidity values if necessary, or just for cleanliness (or do this step sooner?)
+
+```bash
+## skeleton bash script, assuming I learn to use wget
+#! usr/bin/env bash
+
+# get public dataset
+wget http://www.mcs.anl.gov/research/projects/waggle/downloads/datasets/AoT_Chicago.public.latest.tar
+
+# get the name of the directory the tarball will extract to
+extraction=`tar -tf AoT_Chicago.public.latest.tar`
+tar xf AoT_Chicago.public.latest.tar
+
+# run the slicing tool
+python slice-date-range.py $extraction $startDate $endDate
+
+# cd into sliced data dir, get name of dir for next part
+cd $extraction.from-$startDate-to-$endDate
+newDir= #SOMETHING don't know what to put here yet
+
+# extract the data csv
+gunzip data.csv.gz
+
+# run a script that combines removing outliers, splitting by nodes, and doing data reduction 
+- changing directory names for each so the programs will execute on the right data  
+##HOPEFULLY THIS WILL WORK
+python BIGSCRIPT.py -i $newDir
