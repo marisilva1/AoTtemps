@@ -33,7 +33,10 @@ newDir= #SOMETHING don't know what to put here yet
 # extract the data csv
 gunzip data.csv.gz
 
-# run a script that combines removing outliers, splitting by nodes, and doing data reduction 
-- changing directory names for each so the programs will execute on the right data  
-##HOPEFULLY THIS WILL WORK
-python BIGSCRIPT.py -i $newDir
+# run outlierScript, nodeSplit, and dataReduction:
+python outlierScript.py -i $newDir
+newerDir = something
+python nodeSplit -i $newerDir
+newestDir = something
+# need to repeat dataReduction for every node .csv file... change that script a bit????
+python dataReduction.py -i $newestDir
