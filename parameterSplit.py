@@ -161,7 +161,7 @@ All other metadata mentioned in this README remains the same, except for the pro
 The provenance.csv file contains the provenance for the original data set. Provenance for newly filtered data:
 New Provenance - This data was reduced and combined with the original digest metadata on """ + str(datetime.datetime.utcnow()) + ". It has been modifed by the nodeSplit.py sorting tool.\n\n"
 
-    newReadme = subDir + "/nodeREADME.md"
+    newReadme = subDir + "/parameterREADME.md"
     oldReadme = subDir+"/README.md"
     with open (newReadme,'w') as n, open (oldReadme, "r") as o:
         text = o.read()
