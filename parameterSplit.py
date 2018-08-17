@@ -1,4 +1,4 @@
-#nodeSplit.py
+parameterSplit.py
 #this script will read in a .csv dataset, sort based on node_id, and create multiple separate files for each node.
 #try to pull out the lats and lons of each node, maybe ALSO take out any nodes that don't span the entire time period in this script
 #setup is the same, reading in the data is the same, then we need to sort and write into DIFFERENT FILES.
@@ -50,7 +50,7 @@ def setup():
         #create path names
         dirList = dirPath.split("/")
         parentDir = dirList[len(dirList)-1]
-        subDir = dirPath + "/" + parentDir + "_split_by_node"
+        subDir = dirPath + "/" + parentDir + "_split_by_parameter"
         fileName = subDir + "/data.csv"
 
 #Sort data into separate nodes!
@@ -86,27 +86,25 @@ def sortData():
 
         #sensor needs to have node_id (don't know why it wouldn't but keep this as a safety measure)
         for i in range(0,len(fieldNames)):
-            if (fieldNames[i] == "node_id"):
-                nodeTitle = "node_id"
+            if (fieldNames[i] == "parameter"):
+                parameterName = "parameter"
 
-        if (nodeTitle != "node_id"):
-            print("Error: Could not find appropriate value header. CSV file headers must include 'node_id' for this tool to function.")
+        if (parameterName != "parameter"):
+            print("Error: Could not find appropriate value header. CSV file headers must include 'parameter' for this tool to function.")
             exit(1)
 
         #go through each line of the input .csv file, make a list of each of the different node IDs included in the dataset
         #the lists are stored in a dictionary with keys corresponding to each different node_id
         for row in reader:
-            node = str(row[nodeTitle])
-            nodeList.append(node)
-            outputDict.setdefault(node, []).append(row.copy())
+            parameter = str(row[parameterName])
+            nodeList.append(parameter)
+            outputDict.setdefault(parameter, []).append(row.copy())
 
             #create new file paths for each unique node
-            if node not in fileNames:
-                fileNames.append(subDir + "/" + node + ".csv")
+            if parameter not in fileNames:
+                fileNames.append(subDir + "/" + parameter + ".csv")
 
         outputFiles = fileNames
-
-        # READ IN THE NODES.CSV TOO, SO YOU CAN ASSIGN LATS AND LONS TO THE NODES BEING INCLUDED INSTEAD OF HAVING TO DO THAT BY HAND.
 
 def writeFile():
     global outputFile
@@ -157,7 +155,7 @@ def copyDigestFiles():
         print('Error: %s' % e.strerror)
 
     #modify the README, create new README, delete old README
-    modifierText = """## NOTE: This README has been modifed by nodeSplit.py, and the data included in this directory is sort by the nodes included in the dataset.\n
+    modifierText = """## NOTE: This README has been modifed by nodeSplit.py, and the data included in this directory is sorted based on the parameters included in the dataset.\n
 Within this README, the 'data.csv.gz' archive is referred to as the compressed CSV containing the sensor data file (data.csv). No rows have been removed or altered, just reorganized.
 All other metadata mentioned in this README remains the same, except for the provenance metadata and the list of columns in data.csv.gz. Since this file no longer exists, these columns are incorrect.
 The provenance.csv file contains the provenance for the original data set. Provenance for newly filtered data:
