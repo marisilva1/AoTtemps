@@ -13,7 +13,7 @@ Steps to manipulate data:
 6. Do analysis - reorganize the data into separate columns for temperature, pressure, and humidity values if necessary, or just for cleanliness (or do this step sooner?)
 
 ```bash
-## skeleton bash script, assuming I learn to use wget
+## this is my best stab at a skeleton bash script, though I haven't used wget & probably won't yet
 #! usr/bin/env bash
 
 # get public dataset
@@ -28,15 +28,14 @@ python slice-date-range.py $extraction $startDate $endDate
 
 # cd into sliced data dir, get name of dir for next part
 cd $extraction.from-$startDate-to-$endDate
-newDir= #SOMETHING don't know what to put here yet
+newDir= #SOMETHING (don't know what to put here yet)
 
 # extract the data csv
 gunzip data.csv.gz
 
-# run outlierScript, nodeSplit, and dataReduction:
+# run outlierScript, parameterSplit, and dataReduction:
 python outlierScript.py -i $newDir
 newerDir = something
-python nodeSplit -i $newerDir
+python dataReduction.py -i $newerDir
 newestDir = something
-# need to repeat dataReduction for every node .csv file... change that script a bit????
-python dataReduction.py -i $newestDir
+python paremeterSplit.py -i $newestDir
