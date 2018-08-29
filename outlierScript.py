@@ -74,7 +74,7 @@ def createData():
     valStr = ' '
     count = 0
     temp = []
-    
+
     with open(inputFile, "r") as file:
         #create a csv reader object (it is an Ordered Dictionary of all the rows from the .csv file)
         #populate the fieldNames variable to place at the top of the output .csv file
@@ -116,7 +116,7 @@ def createData():
 
             #keep temps between -20 and 50 celsius
             if parameter == "temperature":
-                if value < -20 | value > 50:
+                if value < -20 or value > 50:
                     del row
                     count = count+1
                 else:
@@ -124,7 +124,7 @@ def createData():
 
             #no humidity below 10 or above 100, in g/m^3
             elif parameter == "humidity":
-                if value < 10 | value > 100:
+                if value < 10 or value > 100:
                     del row
                     count = count+1
                 else:
@@ -132,7 +132,7 @@ def createData():
 
             #no pressure below 100 or above 1100 in millibars
             elif parameter == "pressure":
-                if value < 100 | value > 1100:
+                if value < 100.0 or value > 1100.0:
                     del row
                     count = count+1
                 else:
