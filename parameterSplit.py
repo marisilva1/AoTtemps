@@ -1,4 +1,4 @@
-parameterSplit.py
+#parameterSplit.py
 #this script will read in a .csv dataset, sort based on node_id, and create multiple separate files for each node.
 #try to pull out the lats and lons of each node, maybe ALSO take out any nodes that don't span the entire time period in this script
 #setup is the same, reading in the data is the same, then we need to sort and write into DIFFERENT FILES.
